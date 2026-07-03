@@ -1,0 +1,392 @@
+/* 基础设置：让页面在手机和电脑上都能自然铺满屏幕 */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  font-family: "Microsoft YaHei", "PingFang SC", "Segoe UI", sans-serif;
+  color: #fff7fb;
+  background:
+    radial-gradient(circle at 18% 12%, rgba(255, 167, 209, 0.2), transparent 32%),
+    radial-gradient(circle at 82% 82%, rgba(127, 232, 213, 0.18), transparent 34%),
+    linear-gradient(145deg, #11131f 0%, #171b2b 48%, #102322 100%);
+  overflow-x: hidden;
+}
+
+/* 背景网格和轻微扫描线，全部是视觉效果，不包含任何真实扫描能力 */
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+body::before {
+  background-image:
+    linear-gradient(rgba(255, 221, 239, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(127, 232, 213, 0.055) 1px, transparent 1px);
+  background-size: 42px 42px;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, black 18%, black 82%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, black 18%, black 82%, transparent);
+}
+
+body::after {
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(255, 205, 230, 0.055) 50%,
+    transparent 100%
+  );
+  height: 28%;
+  animation: scanLine 6s linear infinite;
+}
+
+.page-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 28px 16px;
+}
+
+/* 主面板：终端卡片 */
+.terminal-card {
+  position: relative;
+  width: min(720px, 100%);
+  padding: 0;
+  border: 1px solid rgba(255, 220, 239, 0.22);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(24, 28, 43, 0.93), rgba(13, 26, 33, 0.91)),
+    rgba(15, 24, 34, 0.9);
+  box-shadow:
+    0 28px 90px rgba(0, 0, 0, 0.42),
+    0 0 36px rgba(255, 169, 211, 0.12),
+    inset 0 0 28px rgba(127, 232, 213, 0.045);
+  overflow: hidden;
+}
+
+.terminal-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  pointer-events: none;
+}
+
+.terminal-topbar {
+  height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 18px;
+  border-bottom: 1px solid rgba(255, 220, 239, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.dot-red {
+  background: #ff8dbb;
+}
+
+.dot-yellow {
+  background: #ffd98a;
+}
+
+.dot-green {
+  background: #8debd8;
+}
+
+.topbar-text {
+  margin-left: auto;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: rgba(255, 247, 251, 0.54);
+}
+
+.hero {
+  padding: 42px 34px 22px;
+  text-align: center;
+}
+
+.eyebrow {
+  margin: 0 0 12px;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  color: #a8f0e4;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(38px, 8vw, 72px);
+  line-height: 1;
+  letter-spacing: 0;
+  color: #f4fffb;
+  text-shadow:
+    0 0 10px rgba(168, 240, 228, 0.3),
+    0 0 26px rgba(255, 161, 209, 0.18);
+}
+
+.subtitle {
+  margin: 14px 0 0;
+  font-size: 20px;
+  color: #ffe3f1;
+}
+
+.intro {
+  margin: 14px auto 0;
+  max-width: 360px;
+  color: rgba(255, 247, 251, 0.72);
+  line-height: 1.7;
+}
+
+.action-area {
+  display: flex;
+  justify-content: center;
+  padding: 8px 24px 28px;
+}
+
+.scan-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-width: 166px;
+  min-height: 48px;
+  padding: 0 24px;
+  border: 1px solid rgba(255, 221, 239, 0.7);
+  border-radius: 8px;
+  color: #17101a;
+  font-size: 16px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #ffe0ef, #99eadc);
+  box-shadow:
+    0 0 20px rgba(255, 169, 211, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+}
+
+.scan-button:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 0 26px rgba(255, 169, 211, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.56);
+}
+
+.scan-button:disabled {
+  cursor: wait;
+  opacity: 0.72;
+  transform: none;
+}
+
+.button-icon {
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+}
+
+.scan-button.is-running .button-icon {
+  animation: spin 0.9s linear infinite;
+}
+
+.scanner-window {
+  margin: 0 28px 28px;
+  padding: 22px;
+  border: 1px solid rgba(255, 220, 239, 0.15);
+  border-radius: 8px;
+  background:
+    linear-gradient(rgba(22, 28, 40, 0.92), rgba(10, 22, 29, 0.92)),
+    repeating-linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.03) 0,
+      rgba(255, 255, 255, 0.03) 1px,
+      transparent 1px,
+      transparent 7px
+    );
+}
+
+.log-list {
+  min-height: 172px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-family: "Consolas", "Courier New", monospace;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.log-line,
+.placeholder {
+  margin: 0;
+  color: rgba(255, 247, 251, 0.82);
+}
+
+.log-line::before {
+  content: "> ";
+  color: #a8f0e4;
+}
+
+.placeholder {
+  color: rgba(255, 247, 251, 0.44);
+}
+
+.progress-row {
+  display: grid;
+  grid-template-columns: 1fr 52px;
+  align-items: center;
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.progress-track {
+  height: 12px;
+  border: 1px solid rgba(255, 220, 239, 0.22);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+
+.progress-bar {
+  width: 0%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #a8f0e4, #ffe0ef, #d7c7ff);
+  box-shadow: 0 0 14px rgba(255, 169, 211, 0.38);
+  transition: width 0.28s ease;
+}
+
+.progress-text {
+  font-family: "Consolas", "Courier New", monospace;
+  color: #ffe3f1;
+  text-align: right;
+}
+
+.result-panel {
+  margin-top: 22px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 220, 239, 0.14);
+}
+
+.result-title {
+  margin: 0 0 14px;
+  font-size: 18px;
+  color: #ffffff;
+}
+
+.result-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.result-item {
+  padding: 14px;
+  border: 1px solid rgba(255, 220, 239, 0.13);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.result-label {
+  margin: 0 0 6px;
+  font-size: 13px;
+  color: rgba(255, 247, 251, 0.62);
+}
+
+.result-value {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 800;
+  color: #a8f0e4;
+}
+
+.keyword {
+  color: #ffd98a;
+}
+
+.final-message {
+  margin: 16px 0 0;
+  padding: 14px 16px;
+  border-left: 3px solid #ffe0ef;
+  background: rgba(255, 224, 239, 0.08);
+  color: #f4fffb;
+  line-height: 1.7;
+}
+
+.footer-note {
+  padding: 0 24px 24px;
+  text-align: center;
+  font-size: 13px;
+  color: rgba(255, 247, 251, 0.5);
+}
+
+@keyframes scanLine {
+  from {
+    transform: translateY(-120%);
+  }
+  to {
+    transform: translateY(420%);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 手机端适配：减少留白，让内容更容易阅读 */
+@media (max-width: 560px) {
+  .page-shell {
+    padding: 16px 10px;
+  }
+
+  .terminal-topbar {
+    padding: 0 14px;
+  }
+
+  .topbar-text {
+    font-size: 11px;
+  }
+
+  .hero {
+    padding: 34px 18px 18px;
+  }
+
+  .subtitle {
+    font-size: 18px;
+  }
+
+  .scanner-window {
+    margin: 0 14px 20px;
+    padding: 16px;
+  }
+
+  .log-list {
+    min-height: 190px;
+    font-size: 13px;
+  }
+
+  .result-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .scan-button {
+    width: 100%;
+    max-width: 320px;
+  }
+}
