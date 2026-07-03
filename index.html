@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIGNAL SCANNER 专属状态检测终端</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- 页面背景装饰：网格和扫描光线都由 CSS 控制，不会请求任何权限或外部资源 -->
+  <main class="page-shell">
+    <section class="terminal-card" aria-label="SIGNAL SCANNER 专属状态检测终端">
+      <div class="terminal-topbar">
+        <span class="dot dot-red"></span>
+        <span class="dot dot-yellow"></span>
+        <span class="dot dot-green"></span>
+        <span class="topbar-text">GENTLE SIGNAL MODE</span>
+      </div>
+
+      <header class="hero">
+        <p class="eyebrow">STATUS CHECK / TODAY</p>
+        <h1>SIGNAL SCANNER</h1>
+        <p class="subtitle">今日状态检测终端</p>
+        <p class="intro">点击按钮，生成一份专属今日状态报告</p>
+      </header>
+
+      <div class="action-area">
+        <button id="scanButton" class="scan-button" type="button">
+          <span class="button-icon" aria-hidden="true"></span>
+          <span id="buttonText">开始检测</span>
+        </button>
+      </div>
+
+      <section class="scanner-window" aria-live="polite">
+        <!-- 终端日志会由 JavaScript 一行一行写入这里 -->
+        <div id="logList" class="log-list">
+          <p class="placeholder">等待启动专属检测程序...</p>
+        </div>
+
+        <div class="progress-row" aria-label="检测进度">
+          <div class="progress-track">
+            <div id="progressBar" class="progress-bar"></div>
+          </div>
+          <span id="progressText" class="progress-text">0%</span>
+        </div>
+
+        <!-- 检测完成后的随机报告会显示在这里 -->
+        <div id="resultPanel" class="result-panel" hidden></div>
+      </section>
+
+      <footer class="footer-note">仅供娱乐 · 不采集任何信息</footer>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
