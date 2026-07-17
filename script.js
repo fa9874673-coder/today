@@ -1,167 +1,231 @@
-// 这个文件只负责页面互动，不会收集信息，也不会请求任何设备权限。
+// SIGNAL SCANNER 2.0
+// 纯前端互动：不请求权限、不联网、不保存或上传任何信息。
 
-// 日志文案：以后想改扫描过程，只需要修改这个数组。
-const scanLogs = [
-  "正在校准今日心情频率……",
-  "正在捕捉微弱可爱信号……",
-  "正在分析快乐电量……",
-  "正在计算奶茶补给优先级……",
-  "正在生成专属状态报告……"
+const signalMessages = {
+  mood: "已接收：心情频率慢慢稳定。",
+  energy: "已接收：快乐电量正在回升。",
+  luck: "已接收：一点点好运靠近。",
+  rest: "已确认：休息许可通过。",
+  treat: "已确认：小奖励合理。",
+  calm: "已过滤：无关烦恼先放一放。"
+};
+
+const resultPool = [
+  {
+    title: "适合慢慢恢复",
+    keywords: "小奖励 / 放空 / 好运",
+    advice: "把今天剩下的时间过得轻一点。"
+  },
+  {
+    title: "轻度充电中",
+    keywords: "热饮 / 早睡 / 晴天",
+    advice: "不用一次想完所有事，先照顾好这一小段。"
+  },
+  {
+    title: "信号稳定偏亮",
+    keywords: "微笑 / 慢慢来 / 补给",
+    advice: "今天适合给自己留一点松弛的空间。"
+  },
+  {
+    title: "好运等待接收",
+    keywords: "小惊喜 / 轻松 / 明天",
+    advice: "如果遇到一点好事，可以认真接住。"
+  }
 ];
 
-// 幸运关键词：以后想增加或删除关键词，直接改这里。
-const luckyKeywords = [
-  "奶茶",
-  "微笑",
-  "晴天",
-  "发呆片刻",
-  "轻松充电",
-  "小零食",
-  "早睡",
-  "好运",
-  "慢慢来",
-  "保持可爱",
-  "开心一点"
-];
+const nodes = Array.from(document.querySelectorAll(".signal-node"));
+const activeLine = document.getElementById("activeLine");
+const receiverStatus = document.getElementById("receiverStatus");
+const signalHint = document.getElementById("signalHint");
+const constellationWrap = document.querySelector(".constellation-wrap");
+const resultCard = document.getElementById("resultCard");
+const resultTitle = document.getElementById("resultTitle");
+const resultKeywords = document.getElementById("resultKeywords");
+const resultAdvice = document.getElementById("resultAdvice");
+const decodeButton = document.getElementById("decodeButton");
+const resetButton = document.getElementById("resetButton");
+const decodedSignal = document.getElementById("decodedSignal");
+const signalAnnouncement = document.getElementById("signalAnnouncement");
 
-// 最终结论：以后想换成自己的梗，直接改这里。
-const finalMessages = [
-  "系统结论：今日状态良好，建议奖励一杯奶茶。",
-  "系统结论：检测到可爱能量偏高，请继续保持。",
-  "系统结论：快乐电量略低，建议补充小零食。",
-  "系统结论：今日适合被温柔对待。",
-  "系统结论：好运正在靠近，请注意接收。",
-  "系统结论：建议今日少烦恼一点，多开心一点。",
-  "系统结论：发呆概率合理，允许短暂放空。",
-  "系统结论：今日信号稳定，适合慢慢变开心。"
-];
+const activatedSignals = [];
+let resultShown = false;
+let decodeRun = 0;
+let decodeInProgress = false;
+let hintTimer = 0;
+let resultTimer = 0;
+let announcementFrame = 0;
 
-// 获取页面元素，集中放在这里方便初学者理解。
-const scanButton = document.getElementById("scanButton");
-const buttonText = document.getElementById("buttonText");
-const logList = document.getElementById("logList");
-const progressBar = document.getElementById("progressBar");
-const progressText = document.getElementById("progressText");
-const resultPanel = document.getElementById("resultPanel");
-
-// 生成 0 到 100 的随机整数。
-function getRandomScore() {
-  return Math.floor(Math.random() * 101);
-}
-
-// 从数组里随机取一项。
 function pickRandom(list) {
   const index = Math.floor(Math.random() * list.length);
   return list[index];
 }
 
-// 等待指定时间，用来制造终端一行一行出现的感觉。
 function wait(ms) {
   return new Promise(function (resolve) {
     setTimeout(resolve, ms);
   });
 }
 
-// 重置界面，准备开始新一轮检测。
-function resetScanner() {
-  logList.innerHTML = "";
-  resultPanel.hidden = true;
-  resultPanel.innerHTML = "";
-  progressBar.style.width = "0%";
-  progressText.textContent = "0%";
+function updateLine() {
+  const points = activatedSignals.map(function (node) {
+    return node.dataset.x + "," + node.dataset.y;
+  });
+
+  activeLine.setAttribute("points", points.join(" "));
 }
 
-// 在终端区域添加一行日志。
-function addLog(text) {
-  const line = document.createElement("p");
-  line.className = "log-line";
-  line.textContent = text;
-  logList.appendChild(line);
+function setNodeCoordinates() {
+  nodes.forEach(function (node) {
+    const styles = getComputedStyle(node);
+    node.dataset.x = styles.getPropertyValue("--x").trim();
+    node.dataset.y = styles.getPropertyValue("--y").trim();
+  });
+
+  updateLine();
 }
 
-// 更新进度条和百分比文字。
-function updateProgress(percent) {
-  progressBar.style.width = percent + "%";
-  progressText.textContent = percent + "%";
+function updateHint(message) {
+  window.clearTimeout(hintTimer);
+  signalHint.classList.remove("is-visible");
+
+  hintTimer = window.setTimeout(function () {
+    hintTimer = 0;
+    signalHint.textContent = message;
+    signalHint.classList.add("is-visible");
+  }, 80);
 }
 
-// 生成并显示最终报告。
-function showReport() {
-  const report = {
-    energyScore: getRandomScore(),
-    cuteEnergy: getRandomScore(),
-    feedNeed: getRandomScore(),
-    daydreamRate: getRandomScore(),
-    happyBattery: getRandomScore(),
-    luckDensity: getRandomScore(),
-    keyword: pickRandom(luckyKeywords),
-    message: pickRandom(finalMessages)
-  };
+function announce(message) {
+  window.cancelAnimationFrame(announcementFrame);
+  signalAnnouncement.textContent = "";
 
-  resultPanel.innerHTML = `
-    <h2 class="result-title">专属状态报告已生成</h2>
-    <div class="result-grid">
-      <div class="result-item">
-        <p class="result-label">今日元气值</p>
-        <p class="result-value">${report.energyScore}</p>
-      </div>
-      <div class="result-item">
-        <p class="result-label">可爱能量</p>
-        <p class="result-value">${report.cuteEnergy}</p>
-      </div>
-      <div class="result-item">
-        <p class="result-label">被投喂需求</p>
-        <p class="result-value">${report.feedNeed}</p>
-      </div>
-      <div class="result-item">
-        <p class="result-label">发呆概率</p>
-        <p class="result-value">${report.daydreamRate}</p>
-      </div>
-      <div class="result-item">
-        <p class="result-label">快乐电量</p>
-        <p class="result-value">${report.happyBattery}</p>
-      </div>
-      <div class="result-item">
-        <p class="result-label">好运浓度</p>
-        <p class="result-value">${report.luckDensity}</p>
-      </div>
-      <div class="result-item">
-        <p class="result-label">今日幸运关键词</p>
-        <p class="result-value keyword">${report.keyword}</p>
-      </div>
-    </div>
-    <p class="final-message">${report.message}</p>
-  `;
-
-  resultPanel.hidden = false;
+  announcementFrame = window.requestAnimationFrame(function () {
+    announcementFrame = 0;
+    signalAnnouncement.textContent = message;
+  });
 }
 
-// 主流程：点击按钮后，依次显示日志、推进进度、生成报告。
-async function startScan() {
-  scanButton.disabled = true;
-  scanButton.classList.add("is-running");
-  buttonText.textContent = "检测中";
+function updateProgressStatus(extraText) {
+  const count = activatedSignals.length;
+  const suffix = extraText ? "，" + extraText : "";
+  receiverStatus.textContent = "已点亮 " + count + " / " + nodes.length + suffix;
+}
 
-  resetScanner();
+function showResultCard() {
+  const result = pickRandom(resultPool);
 
-  for (let i = 0; i < scanLogs.length; i++) {
-    addLog(scanLogs[i]);
+  resultTitle.textContent = result.title;
+  resultKeywords.textContent = result.keywords;
+  resultAdvice.textContent = result.advice;
+  resultCard.hidden = false;
+  constellationWrap.classList.add("has-result");
+  resultShown = true;
+  updateProgressStatus("信号已连接。");
+  updateHint("今日信号完整。");
+  announce("今日信号完整：" + result.title + "。" + result.advice);
+}
 
-    const percent = Math.round(((i + 1) / scanLogs.length) * 100);
-    updateProgress(percent);
-
-    await wait(620);
+function activateSignal(node) {
+  if (node.classList.contains("is-active")) {
+    return;
   }
 
-  addLog("检测完成。报告输出中……");
-  await wait(350);
+  node.classList.add("is-active");
+  node.setAttribute("aria-pressed", "true");
+  activatedSignals.push(node);
+  updateLine();
 
-  showReport();
+  const id = node.dataset.id;
 
-  scanButton.disabled = false;
-  scanButton.classList.remove("is-running");
-  buttonText.textContent = "重新检测";
+  updateProgressStatus();
+  updateHint(signalMessages[id]);
+
+  if (activatedSignals.length === nodes.length && !resultShown && !resultTimer) {
+    resultTimer = window.setTimeout(function () {
+      resultTimer = 0;
+
+      if (activatedSignals.length === nodes.length && !resultShown) {
+        showResultCard();
+      }
+    }, 520);
+  }
 }
 
-// 给按钮绑定点击事件。
-scanButton.addEventListener("click", startScan);
+async function revealDecodedSignal() {
+  if (decodeInProgress || decodeButton.getAttribute("aria-disabled") === "true") {
+    return;
+  }
+
+  const text = "今天也要开心一点。";
+  const currentRun = decodeRun;
+
+  decodeInProgress = true;
+  decodeButton.setAttribute("aria-disabled", "true");
+  decodeButton.textContent = "接收中";
+  decodedSignal.hidden = false;
+  decodedSignal.textContent = "";
+
+  for (let i = 0; i < text.length; i++) {
+    if (currentRun !== decodeRun) {
+      return;
+    }
+
+    decodedSignal.textContent += text[i];
+    await wait(90);
+  }
+
+  if (currentRun !== decodeRun) {
+    return;
+  }
+
+  decodeInProgress = false;
+  decodeButton.textContent = "信号已接收";
+  announce("最后一段信号已接收：" + text);
+}
+
+function resetSignals() {
+  decodeRun++;
+  decodeInProgress = false;
+  window.clearTimeout(hintTimer);
+  window.clearTimeout(resultTimer);
+  window.cancelAnimationFrame(announcementFrame);
+  hintTimer = 0;
+  resultTimer = 0;
+  announcementFrame = 0;
+  activatedSignals.length = 0;
+  resultShown = false;
+  signalAnnouncement.textContent = "";
+
+  nodes.forEach(function (node) {
+    node.classList.remove("is-active");
+    node.setAttribute("aria-pressed", "false");
+  });
+
+  resultCard.hidden = true;
+  constellationWrap.classList.remove("has-result");
+  decodedSignal.hidden = true;
+  decodedSignal.textContent = "";
+  decodeButton.setAttribute("aria-disabled", "false");
+  decodeButton.textContent = "接收最后一段信号";
+
+  updateLine();
+  updateProgressStatus("等待接收。");
+  updateHint("点亮任意一颗信号。");
+  nodes[0].focus();
+}
+
+function prepareConstellation() {
+  nodes.forEach(function (node) {
+    node.addEventListener("click", function () {
+      activateSignal(node);
+    });
+  });
+
+  setNodeCoordinates();
+}
+
+decodeButton.addEventListener("click", revealDecodedSignal);
+resetButton.addEventListener("click", resetSignals);
+window.addEventListener("resize", setNodeCoordinates);
+updateProgressStatus("等待接收。");
+prepareConstellation();

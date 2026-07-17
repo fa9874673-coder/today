@@ -3,52 +3,84 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SIGNAL SCANNER 专属状态检测终端</title>
+  <title>SIGNAL SCANNER 2.0 今晚的信号</title>
+  <meta name="description" content="一个纯静态的柔和信号接收小网页，所有内容仅在本地生成。">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- 页面背景装饰：网格和扫描光线都由 CSS 控制，不会请求任何权限或外部资源 -->
-  <main class="page-shell">
-    <section class="terminal-card" aria-label="SIGNAL SCANNER 专属状态检测终端">
-      <div class="terminal-topbar">
-        <span class="dot dot-red"></span>
-        <span class="dot dot-yellow"></span>
-        <span class="dot dot-green"></span>
-        <span class="topbar-text">GENTLE SIGNAL MODE</span>
-      </div>
+  <!-- 纯静态页面：不请求权限，不调用外部 API，不采集或保存任何信息 -->
+  <main class="signal-page">
+    <section class="signal-stage" aria-label="SIGNAL SCANNER 2.0 今晚的信号">
+      <div class="ambient ambient-one"></div>
+      <div class="ambient ambient-two"></div>
+      <div class="ambient ambient-three"></div>
 
-      <header class="hero">
-        <p class="eyebrow">STATUS CHECK / TODAY</p>
-        <h1>SIGNAL SCANNER</h1>
-        <p class="subtitle">今日状态检测终端</p>
-        <p class="intro">点击按钮，生成一份专属今日状态报告</p>
+      <header class="intro-panel">
+        <p class="eyebrow">SIGNAL SCANNER 2.0</p>
+        <h1>今晚的信号</h1>
+        <p class="intro-text">点亮几颗微弱信号，看看今晚会留下什么提示。</p>
       </header>
 
-      <div class="action-area">
-        <button id="scanButton" class="scan-button" type="button">
-          <span class="button-icon" aria-hidden="true"></span>
-          <span id="buttonText">开始检测</span>
+      <section class="constellation-wrap" aria-label="信号星图">
+        <svg id="signalLines" class="signal-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          <polyline id="activeLine" points=""></polyline>
+        </svg>
+
+        <button class="signal-node node-mood" type="button" data-id="mood" aria-label="接收心情频率信号" aria-pressed="false">
+          <span class="node-core"></span>
+          <span class="node-label">心情频率</span>
         </button>
-      </div>
 
-      <section class="scanner-window" aria-live="polite">
-        <!-- 终端日志会由 JavaScript 一行一行写入这里 -->
-        <div id="logList" class="log-list">
-          <p class="placeholder">等待启动专属检测程序...</p>
-        </div>
+        <button class="signal-node node-energy" type="button" data-id="energy" aria-label="接收快乐电量信号" aria-pressed="false">
+          <span class="node-core"></span>
+          <span class="node-label">快乐电量</span>
+        </button>
 
-        <div class="progress-row" aria-label="检测进度">
-          <div class="progress-track">
-            <div id="progressBar" class="progress-bar"></div>
+        <button class="signal-node node-luck" type="button" data-id="luck" aria-label="接收好运浓度信号" aria-pressed="false">
+          <span class="node-core"></span>
+          <span class="node-label">好运浓度</span>
+        </button>
+
+        <button class="signal-node node-rest" type="button" data-id="rest" aria-label="接收休息许可信号" aria-pressed="false">
+          <span class="node-core"></span>
+          <span class="node-label">休息许可</span>
+        </button>
+
+        <button class="signal-node node-treat" type="button" data-id="treat" aria-label="接收小奖励建议信号" aria-pressed="false">
+          <span class="node-core"></span>
+          <span class="node-label">小奖励</span>
+        </button>
+
+        <button class="signal-node node-calm" type="button" data-id="calm" aria-label="接收放空片刻信号" aria-pressed="false">
+          <span class="node-core"></span>
+          <span class="node-label">放空片刻</span>
+        </button>
+
+        <div id="resultCard" class="result-card" role="region" aria-labelledby="resultTitle" hidden>
+          <p class="card-kicker">今日信号完整</p>
+          <h2 id="resultTitle">适合慢慢恢复</h2>
+          <p id="resultKeywords" class="result-keywords">小奖励 / 放空 / 好运</p>
+          <p id="resultAdvice" class="result-advice">把今天剩下的时间过得轻一点。</p>
+          <div class="secret-area">
+            <p class="signal-code">S1G-N4L: 7A-09-KAI-XIN</p>
+            <p id="decodedSignal" class="decoded-signal" hidden></p>
+            <div class="card-actions">
+              <button id="decodeButton" class="decode-button" type="button" aria-disabled="false">接收最后一段信号</button>
+              <button id="resetButton" class="reset-button" type="button">再接收一次</button>
+            </div>
           </div>
-          <span id="progressText" class="progress-text">0%</span>
         </div>
-
-        <!-- 检测完成后的随机报告会显示在这里 -->
-        <div id="resultPanel" class="result-panel" hidden></div>
       </section>
 
-      <footer class="footer-note">仅供娱乐 · 所有结果仅在本地随机生成，不采集任何信息</footer>
+      <div class="status-strip" role="status" aria-live="polite" aria-atomic="true">
+        <span class="pulse-dot"></span>
+        <span id="receiverStatus">已点亮 0 / 6，等待接收。</span>
+      </div>
+
+      <p id="signalHint" class="signal-hint is-visible">点亮任意一颗信号。</p>
+      <div id="signalAnnouncement" class="visually-hidden" role="status" aria-live="polite" aria-atomic="true"></div>
+
+      <footer class="privacy-note">本页面不采集任何信息，所有内容只在本地生成。</footer>
     </section>
   </main>
 
